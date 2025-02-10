@@ -11,22 +11,22 @@ data "local_file" "files" {
 
 locals {
   directories = compact(distinct(sort([
-    for f in data.local_file.files : 
-    replace(dirname(f.filename), var.local_mount_dir, ".") 
+    for f in data.local_file.files :
+    replace(dirname(f.filename), var.local_mount_dir, ".")
     if dirname(f.filename) != var.local_mount_dir && dirname(f.filename) != "."
   ])))
 }
 
 locals {
-  root_files = { for f in data.local_file.files : f.filename => f if dirname(f.filename) == var.local_mount_dir }
+  root_files   = { for f in data.local_file.files : f.filename => f if dirname(f.filename) == var.local_mount_dir }
   subdir_files = { for f in data.local_file.files : f.filename => f if dirname(f.filename) != var.local_mount_dir }
 }
 
 resource "azurerm_storage_share_directory" "directories" {
-  for_each              = toset(local.directories)
-  name                  = each.value
-  storage_account_name  = var.storage_account_name
-  share_name            = azurerm_storage_share.fileshare.name
+  for_each             = toset(local.directories)
+  name                 = each.value
+  storage_account_name = var.storage_account_name
+  share_name           = azurerm_storage_share.fileshare.name
 }
 
 resource "azurerm_storage_share_file" "root_files" {

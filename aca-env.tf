@@ -12,22 +12,22 @@ resource "azurerm_container_app_environment" "dify-aca-env" {
   location                   = azurerm_resource_group.rg.location
   resource_group_name        = azurerm_resource_group.rg.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.aca-loga.id
-  infrastructure_subnet_id = azurerm_subnet.acasubnet.id
-  workload_profile  {
-    name = "Consumption"
+  infrastructure_subnet_id   = azurerm_subnet.acasubnet.id
+  workload_profile {
+    name                  = "Consumption"
     workload_profile_type = "Consumption"
   }
 
-  depends_on = [ 
+  depends_on = [
     # azurerm_redis_cache.redis[0],
     azurerm_postgresql_flexible_server.postgres
-   ]
-  
+  ]
+
   # dynamic "depends_on" {
   #   for_each = var.is_aca_enabled ? [azurerm_redis_cache.redis[0]] : []
   #   content {}
   # }
-  
+
 }
 
 resource "azurerm_container_app_environment_storage" "nginxfileshare" {
@@ -35,17 +35,9 @@ resource "azurerm_container_app_environment_storage" "nginxfileshare" {
   container_app_environment_id = azurerm_container_app_environment.dify-aca-env.id
   account_name                 = azurerm_storage_account.acafileshare.name
   # share_name = 
-  share_name                   = module.nginx_fileshare.share_name
-  access_key                   = azurerm_storage_account.acafileshare.primary_access_key
-  access_mode                  = "ReadWrite"
-}
-
-resource "azurerm_container_app_environment_certificate" "difycerts" {
-  count                        = var.isProvidedCert ? 1 : 0
-  name                         = "difycerts"
-  container_app_environment_id = azurerm_container_app_environment.dify-aca-env.id
-  certificate_blob_base64 = filebase64(var.aca-cert-path)
-  certificate_password = var.aca-cert-password
+  share_name  = module.nginx_fileshare.share_name
+  access_key  = azurerm_storage_account.acafileshare.primary_access_key
+  access_mode = "ReadWrite"
 }
 
 resource "azurerm_container_app" "nginx" {
@@ -56,7 +48,7 @@ resource "azurerm_container_app" "nginx" {
 
   template {
     http_scale_rule {
-      name = "nginx"
+      name                = "nginx"
       concurrent_requests = "10"
     }
     max_replicas = 10
@@ -66,13 +58,13 @@ resource "azurerm_container_app" "nginx" {
       image  = "nginx:latest"
       cpu    = 0.5
       memory = "1Gi"
-      volume_mounts { 
+      volume_mounts {
         name = "nginxconf"
         path = "/etc/nginx"
       }
     }
     volume {
-      name = "nginxconf"
+      name         = "nginxconf"
       storage_type = "AzureFile"
       storage_name = azurerm_container_app_environment_storage.nginxfileshare.name
     }
@@ -83,18 +75,10 @@ resource "azurerm_container_app" "nginx" {
     external_enabled = true
     traffic_weight {
       # weight = 100
-      percentage = 100
+      percentage      = 100
       latest_revision = true
     }
     transport = "auto"
-
-    dynamic "custom_domain" {
-      for_each = var.isProvidedCert ? [1] : []
-      content {
-        name           = var.aca-dify-customer-domain
-        certificate_id = azurerm_container_app_environment_certificate.difycerts[0].id
-      }
-    }
   }
 }
 
@@ -103,9 +87,9 @@ resource "azurerm_container_app_environment_storage" "ssrfproxyfileshare" {
   container_app_environment_id = azurerm_container_app_environment.dify-aca-env.id
   account_name                 = azurerm_storage_account.acafileshare.name
   # share_name = 
-  share_name                   = module.ssrf_proxy_fileshare.share_name
-  access_key                   = azurerm_storage_account.acafileshare.primary_access_key
-  access_mode                  = "ReadWrite"
+  share_name  = module.ssrf_proxy_fileshare.share_name
+  access_key  = azurerm_storage_account.acafileshare.primary_access_key
+  access_mode = "ReadWrite"
 }
 
 resource "azurerm_container_app" "ssrfproxy" {
@@ -116,7 +100,7 @@ resource "azurerm_container_app" "ssrfproxy" {
 
   template {
     tcp_scale_rule {
-      name = "ssrfproxy"
+      name                = "ssrfproxy"
       concurrent_requests = "10"
     }
     max_replicas = 10
@@ -126,13 +110,13 @@ resource "azurerm_container_app" "ssrfproxy" {
       image  = "ubuntu/squid:latest"
       cpu    = 0.5
       memory = "1Gi"
-      volume_mounts { 
+      volume_mounts {
         name = "ssrfproxy"
         path = "/etc/squid"
       }
     }
     volume {
-      name = "ssrfproxy"
+      name         = "ssrfproxy"
       storage_type = "AzureFile"
       storage_name = azurerm_container_app_environment_storage.ssrfproxyfileshare.name
     }
@@ -143,7 +127,7 @@ resource "azurerm_container_app" "ssrfproxy" {
     external_enabled = false
     traffic_weight {
       # weight = 100
-      percentage = 100
+      percentage      = 100
       latest_revision = true
     }
     transport = "auto"
@@ -156,9 +140,9 @@ resource "azurerm_container_app_environment_storage" "sandboxfileshare" {
   container_app_environment_id = azurerm_container_app_environment.dify-aca-env.id
   account_name                 = azurerm_storage_account.acafileshare.name
   # share_name = 
-  share_name                   = module.sandbox_fileshare.share_name
-  access_key                   = azurerm_storage_account.acafileshare.primary_access_key
-  access_mode                  = "ReadWrite"
+  share_name  = module.sandbox_fileshare.share_name
+  access_key  = azurerm_storage_account.acafileshare.primary_access_key
+  access_mode = "ReadWrite"
 }
 
 resource "azurerm_container_app" "sandbox" {
@@ -169,7 +153,7 @@ resource "azurerm_container_app" "sandbox" {
 
   template {
     tcp_scale_rule {
-      name = "sandbox"
+      name                = "sandbox"
       concurrent_requests = "10"
     }
     max_replicas = 10
@@ -209,13 +193,13 @@ resource "azurerm_container_app" "sandbox" {
       }
 
 
-      volume_mounts { 
+      volume_mounts {
         name = "sandbox"
         path = "/dependencies"
-        }
+      }
     }
     volume {
-      name = "sandbox"
+      name         = "sandbox"
       storage_type = "AzureFile"
       storage_name = azurerm_container_app_environment_storage.sandboxfileshare.name
     }
@@ -226,7 +210,7 @@ resource "azurerm_container_app" "sandbox" {
     external_enabled = false
     traffic_weight {
       # weight = 100
-      percentage = 100
+      percentage      = 100
       latest_revision = true
     }
     transport = "tcp"
@@ -242,7 +226,7 @@ resource "azurerm_container_app" "worker" {
   template {
 
     tcp_scale_rule {
-      name = "worker"
+      name                = "worker"
       concurrent_requests = "10"
     }
     max_replicas = 10
@@ -286,7 +270,7 @@ resource "azurerm_container_app" "worker" {
         value = azurerm_postgresql_flexible_server_database.difypgsqldb.name
       }
       env {
-        name  = "REDIS_HOST"
+        name = "REDIS_HOST"
         # value = azurerm_redis_cache.redis[0].hostname
         value = length(azurerm_redis_cache.redis) > 0 ? azurerm_redis_cache.redis[0].hostname : ""
       }
@@ -295,9 +279,9 @@ resource "azurerm_container_app" "worker" {
         value = "6379"
       }
       env {
-        name  = "REDIS_PASSWORD"
+        name = "REDIS_PASSWORD"
         # value = azurerm_redis_cache.redis[0].primary_access_key
-        value  = length(azurerm_redis_cache.redis) > 0 ? azurerm_redis_cache.redis[0].primary_access_key : ""
+        value = length(azurerm_redis_cache.redis) > 0 ? azurerm_redis_cache.redis[0].primary_access_key : ""
       }
 
       env {
@@ -311,7 +295,7 @@ resource "azurerm_container_app" "worker" {
       }
 
       env {
-        name  = "CELERY_BROKER_URL"
+        name = "CELERY_BROKER_URL"
         # value = "redis://:${azurerm_redis_cache.redis[0].primary_access_key}@${azurerm_redis_cache.redis[0].hostname}:6379/1"
         value = length(azurerm_redis_cache.redis) > 0 ? "redis://:${azurerm_redis_cache.redis[0].primary_access_key}@${azurerm_redis_cache.redis[0].hostname}:6379/1" : ""
       }
@@ -357,7 +341,7 @@ resource "azurerm_container_app" "worker" {
 
       env {
         name  = "PGVECTOR_PASSWORD"
-        value = azurerm_postgresql_flexible_server.postgres.administrator_password 
+        value = azurerm_postgresql_flexible_server.postgres.administrator_password
       }
 
       env {
@@ -381,7 +365,7 @@ resource "azurerm_container_app" "api" {
 
   template {
     tcp_scale_rule {
-      name = "api"
+      name                = "api"
       concurrent_requests = "10"
     }
     max_replicas = 10
@@ -489,7 +473,7 @@ resource "azurerm_container_app" "api" {
       }
 
       env {
-        name  = "REDIS_HOST"
+        name = "REDIS_HOST"
         # value = azurerm_redis_cache.redis[0].hostname
         value = length(azurerm_redis_cache.redis) > 0 ? azurerm_redis_cache.redis[0].hostname : ""
       }
@@ -498,9 +482,9 @@ resource "azurerm_container_app" "api" {
         value = "6379"
       }
       env {
-        name  = "REDIS_PASSWORD"
+        name = "REDIS_PASSWORD"
         # value = azurerm_redis_cache.redis[0].primary_access_key
-        value  = length(azurerm_redis_cache.redis) > 0 ? azurerm_redis_cache.redis[0].primary_access_key : ""
+        value = length(azurerm_redis_cache.redis) > 0 ? azurerm_redis_cache.redis[0].primary_access_key : ""
       }
 
       env {
@@ -514,7 +498,7 @@ resource "azurerm_container_app" "api" {
       }
 
       env {
-        name  = "CELERY_BROKER_URL"
+        name = "CELERY_BROKER_URL"
         # value = "redis://:${azurerm_redis_cache.redis[0].primary_access_key}@${azurerm_redis_cache.redis[0].hostname}:6379/1"
         value = length(azurerm_redis_cache.redis) > 0 ? "redis://:${azurerm_redis_cache.redis[0].primary_access_key}@${azurerm_redis_cache.redis[0].hostname}:6379/1" : ""
       }
@@ -559,7 +543,7 @@ resource "azurerm_container_app" "api" {
 
       env {
         name  = "PGVECTOR_PASSWORD"
-        value = azurerm_postgresql_flexible_server.postgres.administrator_password 
+        value = azurerm_postgresql_flexible_server.postgres.administrator_password
       }
 
       env {
@@ -574,7 +558,7 @@ resource "azurerm_container_app" "api" {
 
       env {
         name  = "CODE_EXECUTION_ENDPOINT"
-        value = "http://sandbox:8194" 
+        value = "http://sandbox:8194"
       }
 
       env {
@@ -632,16 +616,16 @@ resource "azurerm_container_app" "api" {
   }
 
   ingress {
-      target_port = 5001
-      exposed_port = 5001
-      external_enabled = false
-      traffic_weight {
-        # weight = 100
-        percentage = 100
-        latest_revision = true
-      }
-      transport = "tcp"
+    target_port      = 5001
+    exposed_port     = 5001
+    external_enabled = false
+    traffic_weight {
+      # weight = 100
+      percentage      = 100
+      latest_revision = true
     }
+    transport = "tcp"
+  }
 }
 
 resource "azurerm_container_app" "web" {
@@ -652,7 +636,7 @@ resource "azurerm_container_app" "web" {
 
   template {
     tcp_scale_rule {
-      name = "web"
+      name                = "web"
       concurrent_requests = "10"
     }
     max_replicas = 10
@@ -662,7 +646,7 @@ resource "azurerm_container_app" "web" {
       image  = var.dify-web-image
       cpu    = 1
       memory = "2Gi"
-       env {
+      env {
         name  = "CONSOLE_API_URL"
         value = ""
       }
@@ -680,16 +664,16 @@ resource "azurerm_container_app" "web" {
   }
 
   ingress {
-      target_port = 3000
-      exposed_port = 3000
-      external_enabled = false
-      traffic_weight {
-        # weight = 100
-        percentage = 100
-        latest_revision = true
-      }
-      transport = "tcp"
+    target_port      = 3000
+    exposed_port     = 3000
+    external_enabled = false
+    traffic_weight {
+      # weight = 100
+      percentage      = 100
+      latest_revision = true
     }
+    transport = "tcp"
+  }
 }
 
 output "dify-app-url" {

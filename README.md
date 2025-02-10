@@ -1,11 +1,15 @@
 ## dify-azure-terraform
+
 Deploy [langgenius/dify](https://github.com/langgenius/dify), an LLM based chat bot app on Azure with terraform.
 
 ### Topology
+
 Front-end access:
+
 - nginx -> Azure Container Apps (Serverless)
 
 Back-end components:
+
 - web -> Azure Container Apps (Serverless)
 - api -> Azure Container Apps (Serverless)
 - worker -> Azure Container Apps (minimum of 1 instance)
@@ -22,17 +26,14 @@ Before you provision Dify, please check and set the variables in var.tf file.
 This document provides detailed descriptions of the variables used in the Terraform configuration for setting up the Dify environment.
 
 ### Kick Start
+
 ```bash
+export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+
 terraform init
 terraform plan
 terraform apply --auto-approve
 ```
-
-#### Subscription ID
-
-- **Variable Name**: `subscription-id`
-- **Type**: `string`
-- **Default Value**: `0000000000000`
 
 #### Virtual Network Variables
 
@@ -98,30 +99,11 @@ terraform apply --auto-approve
 - **Type**: `string`
 - **Default Value**: `dify-loga`
 
-##### IF BRING YOUR OWN CERTIFICATE
-
-- **Variable Name**: `isProvidedCert`
-- **Type**: `bool`
-- **Default Value**: `false`
-
-
 ##### ACA Certificate Path (if isProvidedCert is true)
 
 - **Variable Name**: `aca-cert-path`
 - **Type**: `string`
 - **Default Value**: `./certs/difycert.pfx`
-
-##### ACA Certificate Password (if isProvidedCert is true)
-
-- **Variable Name**: `aca-cert-password`
-- **Type**: `string`
-- **Default Value**: `password`
-
-##### ACA Dify Customer Domain (if isProvidedCert is false)
-
-- **Variable Name**: `aca-dify-customer-domain`
-- **Type**: `string`
-- **Default Value**: `dify.nikadwang.com`
 
 #### Container Images
 

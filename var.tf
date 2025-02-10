@@ -1,87 +1,77 @@
-variable "subscription-id" {
-  type = string
-  default = "25cc9009-2580-4987-936c-95aaab093023"
-}
-
 #virtual network variables
 variable "region" {
-  type = string
+  type    = string
   default = "japaneast"
 }
 
 variable "ip-prefix" {
-  type = string
+  type    = string
   default = "10.99"
 }
 #end virtual network variables
 
 variable "storage-account" {
-  type = string
+  type    = string
   default = "acadifytest"
 }
 
 variable "storage-account-container" {
-  type = string
-  default = "dfy" 
+  type    = string
+  default = "dfy"
 }
 
 variable "redis" {
-  type = string
+  type    = string
   default = "acadifyredis"
 }
 
 variable "psql-flexible" {
-  type = string
+  type    = string
   default = "acadifypsql"
 }
 
 variable "pgsql-user" {
-  type = string
+  type    = string
   default = "user"
 }
 
 variable "pgsql-password" {
-  type = string
+  type    = string
   default = "#QWEASDasdqwe"
 }
 
 variable "aca-env" {
-  type = string
+  type    = string
   default = "dify-aca-env"
 }
 
 variable "aca-loga" {
-  type = string
+  type    = string
   default = "dify-loga"
 }
 
-variable "isProvidedCert" {
-  type = bool
-  default = true
-}
-
 variable "aca-cert-path" {
-  type = string
+  type    = string
   default = "./certs/difycert.pfx"
 }
 
 variable "aca-cert-password" {
-  type = string
+  type    = string
   default = "password"
 }
 
 variable "aca-dify-customer-domain" {
-  type = string
+  type    = string
   default = "dify.nikadwang.com"
 }
 
 variable "aca-app-min-count" {
-  type = number
+  type    = number
   default = 0
 }
 
 variable "is_aca_enabled" {
-  type = bool
+  type    = bool
   default = false
 }
 
